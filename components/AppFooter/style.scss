@@ -1,0 +1,11 @@
+@import "~/assets/css/main.scss";
+
+.app-footer {
+  height: $default-footer-height;
+  width: 100%;
+  background-color: #001049;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+}

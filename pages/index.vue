@@ -3,8 +3,11 @@
     <div class="home-page-banner">
       <p class="banner-title">The Truecaller Blog</p>
     </div>
+
     <div class="container home-container py-4">
       <div class="page-title">Latest articles</div>
+
+      <!-- Blog post category dropdown -->
       <select
         class="post-category-selector mt-1 mb-4 mb-sm-3 px-4 py-3"
         name="categories"
@@ -20,7 +23,16 @@
           {{ category.name }}
         </option>
       </select>
-      <div class="row">
+
+      <!-- Loading spinner when blog posts are being requested from the API -->
+      <div v-if="arePostsLoading" class="home-page-loading-icon">
+        <div class="spinner-border" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+
+      <!-- List of blog posts in card format when API returns the data successfully -->
+      <div v-if="!arePostsLoading" class="row">
         <div
           class="blog-post col-sm-12 col-xs-12 col-md-4 col-lg-3 col-xl-3"
           v-for="post in postsToShow"
@@ -50,6 +62,8 @@
           </div>
         </div>
       </div>
+
+      <!-- Pagination component to navigate across more pages of blog posts' list -->
       <div class="post-pagination">
         <div class="mt-3">
           <b-pagination
@@ -70,25 +84,53 @@ import { mapActions, mapState } from "vuex";
 
 export default {
   data() {
+    /**
+     * totalPages: Total number of pages calculated as per the total number of blog posts
+     * postsPerPage: Number of blog posts cards to display in one page
+     * currentPage: Page number for pagination component
+     * currentCategory: Current blog post category to show cards for
+     * arePostsLoading: Flag to toggle loading spinner as per state of API call
+     */
     return {
       totalPages: 300,
       postsPerPage: 20,
       currentPage: 1,
       currentCategory: "all-categories",
+      arePostsLoading: true,
+    };
+  },
+  head() {
+    /**
+     * title: Title for the current page of the application
+     */
+    return {
+      title: "Truecaller Blog",
     };
   },
   async beforeMount() {
+    /** Fetch all the available categories of blog posts to populate categories dropdown options */
     await this.getCategories();
+
+    /** Fetch posts for page 1 on first load of the webpage before mounting the UI */
     await this.getPosts({
       pageNumber: 1,
     });
+
+    /** Toggle loading flag off after completion of API call(s) */
+    this.arePostsLoading = false;
   },
   methods: {
+    /**
+     * Vuex Actions:
+     * getPosts or "GET_POSTS" - action to fetch posts from API & save it in store
+     * getCategories or "GET_CATEGORIES" - action to fetch all the available blog posts' categories & save it in store
+     */
     ...mapActions("posts", {
       getPosts: "GET_POSTS",
       getCategories: "GET_CATEGORIES",
-      getPostBySlug: "GET_POST_BY_SLUG",
     }),
+
+    /** Util function to display relevant category on blog post card based on current category selected */
     getPostCategory(post) {
       let currentCategoryObj = {
         isCurrentCategory: null,
@@ -114,6 +156,11 @@ export default {
         return Object.keys(post.categories)[0];
       }
     },
+
+    /**
+     * Util function to get 'was published' copy for blog posts' cards
+     * Output examples: "2 minutes ago", "1 week ago", "5 months ago"
+     */
     getPostPublishedAt(timestamp) {
       let currentTimestamp = new Date();
       let postTimestamp = new Date(timestamp);
@@ -124,16 +171,19 @@ export default {
             if (currentTimestamp.getHours() === postTimestamp.getHours()) {
               let minutesDiff =
                 currentTimestamp.getMinutes() - postTimestamp.getMinutes();
+
               return `${minutesDiff} ${
                 minutesDiff <= 1 ? "minute" : "minutes"
               } ago`;
             } else {
               let hoursDiff =
                 currentTimestamp.getHours() - postTimestamp.getHours();
+
               return `${hoursDiff} ${hoursDiff <= 1 ? "hour" : "hours"} ago`;
             }
           } else {
             let daysDiff = currentTimestamp.getDate() - postTimestamp.getDate();
+
             if (daysDiff >= 7 && daysDiff < 14) return "1 week ago";
             else if (daysDiff >= 14 && daysDiff < 21) return "2 weeks ago";
             else if (daysDiff >= 21) return "3 weeks ago";
@@ -142,51 +192,88 @@ export default {
         } else {
           let monthsDiff =
             currentTimestamp.getMonth() - postTimestamp.getMonth();
+
           return `${monthsDiff} ${monthsDiff <= 1 ? "month" : "months"} ago`;
         }
       } else {
         let yearsDiff =
           currentTimestamp.getFullYear() - postTimestamp.getFullYear();
+
         return `${yearsDiff} ${yearsDiff <= 1 ? "year" : "years"} ago`;
       }
     },
     redirectToPost(slug) {
+      /**
+       * Blog post card click handler
+       * Redirects to blog post's page using slug as unique identifier
+       */
       this.$router.push(`/post/${slug}`);
     },
   },
   computed: {
+    /**
+     * Vuex Store Values:
+     * totalNumberOfPosts: Total number of blog posts available from the API
+     * postsToShow: Array of blog posts to show on current page
+     * postCategories: All the available blog posts' categories
+     */
     ...mapState("posts", [
       "totalNumberOfPosts",
       "postsToShow",
       "postCategories",
-      "currentPost",
     ]),
   },
   watch: {
     currentPage: {
+      /**
+       * Handler for value change of currentPage (Page number in pagination component)
+       */
       async handler(pageNumber) {
         let category = null;
 
+        /**
+         * Safety null check of currentCategory
+         */
         if (this.currentCategory && this.currentCategory !== "all-categories") {
           category = this.currentCategory;
         }
+
+        /** Toggle loading on before initiating API call to fetch posts for particular page number */
+        this.arePostsLoading = true;
 
         await this.getPosts({
           pageNumber,
           category,
         });
+
+        /** Toggle loading off after completion of API call to fetch posts for particular page number */
+        this.arePostsLoading = false;
       },
     },
     currentCategory: {
+      /**
+       * Handler for value change of currentCategory (Selected cactegory for blog posts in dropdown)
+       */
       async handler(category) {
         if (this.currentPage === 1) {
+          /**
+           * If already at page 1, fetch posts for particular category for page 1
+           */
+          this.arePostsLoading = true;
+
           await this.getPosts({
             pageNumber: 1,
             category,
           });
-        }
 
-        this.currentPage = 1;
+          this.arePostsLoading = false;
+        } else {
+          /**
+           * Before fetching posts for new selected category, reset the page number to 1 if not already.
+           * currentPage watcher makes the API call to get the posts for particular category
+           */
+          this.currentPage = 1;
+        }
       },
     },
   },
@@ -194,127 +281,5 @@ export default {
 </script>
 
 <style lang="scss">
-.home-page {
-  background-color: #f4f7f9;
-  min-height: calc(100vh - 60px - 0.5rem);
-  .home-page-banner {
-    height: 80vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-image: url("~/assets/images/header.jpg");
-    background-position: top center;
-    background-repeat: no-repeat;
-    background-size: cover;
-
-    @media only screen and (max-width: 992px) {
-      height: 70vh;
-      background-position-y: 80px;
-    }
-
-    @media only screen and (max-width: 576px) {
-      height: 60vh;
-      background-position-y: 80px;
-    }
-
-    .banner-title {
-      font-size: 4rem;
-      font-family: sans-serif;
-      font-weight: bold;
-      color: #ffffff;
-      position: relative;
-      top: 40px;
-      text-align: center;
-      padding: 0 1rem;
-
-      @media only screen and (max-width: 576px) {
-        font-size: 2rem;
-      }
-    }
-  }
-  .home-container {
-    .page-title {
-      font-size: 5rem;
-      font-weight: bold;
-
-      @media only screen and (max-width: 576px) {
-        font-size: 2.5rem;
-      }
-    }
-    .post-category-selector {
-      width: 300px;
-      box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
-      border: none;
-      @media only screen and (max-width: 576px) {
-        width: 100%;
-      }
-    }
-    .blog-post {
-      padding-top: 15px;
-      padding-bottom: 15px;
-      .post-card {
-        background-color: #ffffff;
-        box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
-        cursor: pointer;
-        .post-card-header {
-          padding: 1.5rem;
-          font-weight: bold;
-          .category-bullet {
-            display: inline-block;
-            height: 10px;
-            width: 10px;
-            border-radius: 10px;
-            background-color: #45a896;
-            margin-right: 0.4rem;
-          }
-        }
-        .post-card-img {
-          width: 100%;
-          height: 150px;
-          @media only screen and (max-width: 576px) {
-            height: 200px;
-          }
-        }
-        .post-card-title {
-          margin: 1.5rem 1.5rem 0;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          text-overflow: ellipsis;
-          overflow: hidden;
-          word-break: break-word;
-          font-weight: bold;
-          line-height: 1.5rem;
-          height: 3rem;
-        }
-        .post-card-age {
-          padding: 0.5rem 1.5rem 1.5rem;
-        }
-      }
-    }
-    .post-pagination {
-      display: flex;
-      justify-content: center;
-      .pagination {
-        .page-item {
-          background-color: none;
-          .page-link {
-            border-radius: 20px;
-            margin: 0 20px;
-            background: none;
-            border: none;
-            @media only screen and (max-width: 576px) {
-              margin: 0 2px;
-            }
-          }
-        }
-        .active {
-          background-color: #007bff;
-          border: #007bff;
-          border-radius: 30px;
-        }
-      }
-    }
-  }
-}
+@import "./index.scss";
 </style>
