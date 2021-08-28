@@ -23,3 +23,12 @@ $title-default-font-size: 4rem;
   justify-content: center;
   align-items: center;
 }
+
+@mixin error {
+  @include title;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 64px);
+}

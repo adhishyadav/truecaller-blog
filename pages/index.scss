@@ -5,6 +5,15 @@
   background-color: $default-background-color;
   min-height: calc(100vh - $default-footer-height);
 
+  .error-container {
+    @include title;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 64px);
+  }
+
   .home-page-banner {
     height: 80vh;
     display: flex;

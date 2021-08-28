@@ -1,78 +1,83 @@
 <template>
   <div class="home-page">
-    <div class="home-page-banner">
-      <p class="banner-title">The Truecaller Blog</p>
+    <div v-if="error" class="error-container">
+      <p>Something went wrong!</p>
     </div>
-
-    <div class="container home-container py-4">
-      <div class="page-title">Latest articles</div>
-
-      <!-- Blog post category dropdown -->
-      <select
-        class="post-category-selector mt-1 mb-4 mb-sm-3 px-4 py-3"
-        name="categories"
-        id="post-categories"
-        v-model="currentCategory"
-      >
-        <option value="all-categories">All categories</option>
-        <option
-          v-for="category in postCategories"
-          :key="category.ID"
-          :value="category.slug"
-        >
-          {{ category.name }}
-        </option>
-      </select>
-
-      <!-- Loading spinner when blog posts are being requested from the API -->
-      <div v-if="arePostsLoading" class="home-page-loading-icon">
-        <div class="spinner-border" role="status">
-          <span class="sr-only">Loading...</span>
-        </div>
+    <div v-if="!error">
+      <div class="home-page-banner">
+        <p class="banner-title">The Truecaller Blog</p>
       </div>
 
-      <!-- List of blog posts in card format when API returns the data successfully -->
-      <div v-if="!arePostsLoading" class="row">
-        <div
-          class="blog-post col-sm-12 col-xs-12 col-md-4 col-lg-3 col-xl-3"
-          v-for="post in postsToShow"
-          :key="post.ID"
+      <div class="container home-container py-4">
+        <div class="page-title">Latest articles</div>
+
+        <!-- Blog post category dropdown -->
+        <select
+          class="post-category-selector mt-1 mb-4 mb-sm-3 px-4 py-3"
+          name="categories"
+          id="post-categories"
+          v-model="currentCategory"
         >
-          <div class="post-card" @click="redirectToPost(post.slug)">
-            <div class="post-card-header">
-              <span class="category-bullet"></span>
-              {{ getPostCategory(post) }}
-            </div>
-            <img
-              class="post-card-img"
-              :src="
-                post.post_thumbnail
-                  ? post.post_thumbnail.URL
-                  : '~/assets/images/truecaller.svg'
-              "
-              alt="post.post_thumbnail.ID"
-              loading="eager"
-            />
-            <h5 class="post-card-title">{{ post.title }}</h5>
-            <p class="post-card-age m-0">
-              <small class="text-muted">{{
-                getPostPublishedAt(post.date)
-              }}</small>
-            </p>
+          <option value="all-categories">All categories</option>
+          <option
+            v-for="category in postCategories"
+            :key="category.ID"
+            :value="category.slug"
+          >
+            {{ category.name }}
+          </option>
+        </select>
+
+        <!-- Loading spinner when blog posts are being requested from the API -->
+        <div v-if="arePostsLoading" class="home-page-loading-icon">
+          <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
           </div>
         </div>
-      </div>
 
-      <!-- Pagination component to navigate across more pages of blog posts' list -->
-      <div class="post-pagination">
-        <div class="mt-3">
-          <b-pagination
-            v-model="currentPage"
-            :total-rows="totalNumberOfPosts"
-            :per-page="postsPerPage"
-            first-number
-            last-number
-          ></b-pagination>
+        <!-- List of blog posts in card format when API returns the data successfully -->
+        <div v-if="!arePostsLoading" class="row">
+          <div
+            class="blog-post col-sm-12 col-xs-12 col-md-4 col-lg-3 col-xl-3"
+            v-for="post in postsToShow"
+            :key="post.ID"
+          >
+            <div class="post-card" @click="redirectToPost(post.slug)">
+              <div class="post-card-header">
+                <span class="category-bullet"></span>
+                {{ getPostCategory(post) }}
+              </div>
+              <img
+                class="post-card-img"
+                :src="
+                  post.post_thumbnail
+                    ? post.post_thumbnail.URL
+                    : '~/assets/images/truecaller.svg'
+                "
+                alt="post.post_thumbnail.ID"
+                loading="eager"
+              />
+              <h5 class="post-card-title">{{ post.title }}</h5>
+              <p class="post-card-age m-0">
+                <small class="text-muted">{{
+                  getPostPublishedAt(post.date)
+                }}</small>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination component to navigate across more pages of blog posts' list -->
+        <div class="post-pagination">
+          <div class="mt-3">
+            <b-pagination
+              v-model="currentPage"
+              :total-rows="totalNumberOfPosts"
+              :per-page="postsPerPage"
+              first-number
+              last-number
+            ></b-pagination>
+          </div>
         </div>
       </div>
     </div>
@@ -90,6 +95,7 @@ export default {
      * currentPage: Page number for pagination component
      * currentCategory: Current blog post category to show cards for
      * arePostsLoading: Flag to toggle loading spinner as per state of API call
+     * error: error flag to be used when API calls fail
      */
     return {
       totalPages: 300,
@@ -97,6 +103,7 @@ export default {
       currentPage: 1,
       currentCategory: "all-categories",
       arePostsLoading: true,
+      error: null,
     };
   },
   head() {
@@ -108,16 +115,20 @@ export default {
     };
   },
   async beforeMount() {
-    /** Fetch all the available categories of blog posts to populate categories dropdown options */
-    await this.getCategories();
+    try {
+      /** Fetch all the available categories of blog posts to populate categories dropdown options */
+      await this.getCategories();
 
-    /** Fetch posts for page 1 on first load of the webpage before mounting the UI */
-    await this.getPosts({
-      pageNumber: 1,
-    });
+      /** Fetch posts for page 1 on first load of the webpage before mounting the UI */
+      await this.getPosts({
+        pageNumber: 1,
+      });
 
-    /** Toggle loading flag off after completion of API call(s) */
-    this.arePostsLoading = false;
+      /** Toggle loading flag off after completion of API call(s) */
+      this.arePostsLoading = false;
+    } catch (err) {
+      this.error = err;
+    }
   },
   methods: {
     /**
@@ -229,25 +240,32 @@ export default {
        * Handler for value change of currentPage (Page number in pagination component)
        */
       async handler(pageNumber) {
-        let category = null;
+        try {
+          let category = null;
 
-        /**
-         * Safety null check of currentCategory
-         */
-        if (this.currentCategory && this.currentCategory !== "all-categories") {
-          category = this.currentCategory;
+          /**
+           * Safety null check of currentCategory
+           */
+          if (
+            this.currentCategory &&
+            this.currentCategory !== "all-categories"
+          ) {
+            category = this.currentCategory;
+          }
+
+          /** Toggle loading on before initiating API call to fetch posts for particular page number */
+          this.arePostsLoading = true;
+
+          await this.getPosts({
+            pageNumber,
+            category,
+          });
+
+          /** Toggle loading off after completion of API call to fetch posts for particular page number */
+          this.arePostsLoading = false;
+        } catch (err) {
+          this.error = err;
         }
-
-        /** Toggle loading on before initiating API call to fetch posts for particular page number */
-        this.arePostsLoading = true;
-
-        await this.getPosts({
-          pageNumber,
-          category,
-        });
-
-        /** Toggle loading off after completion of API call to fetch posts for particular page number */
-        this.arePostsLoading = false;
       },
     },
     currentCategory: {
@@ -255,24 +273,28 @@ export default {
        * Handler for value change of currentCategory (Selected cactegory for blog posts in dropdown)
        */
       async handler(category) {
-        if (this.currentPage === 1) {
-          /**
-           * If already at page 1, fetch posts for particular category for page 1
-           */
-          this.arePostsLoading = true;
+        try {
+          if (this.currentPage === 1) {
+            /**
+             * If already at page 1, fetch posts for particular category for page 1
+             */
+            this.arePostsLoading = true;
 
-          await this.getPosts({
-            pageNumber: 1,
-            category,
-          });
+            await this.getPosts({
+              pageNumber: 1,
+              category,
+            });
 
-          this.arePostsLoading = false;
-        } else {
-          /**
-           * Before fetching posts for new selected category, reset the page number to 1 if not already.
-           * currentPage watcher makes the API call to get the posts for particular category
-           */
-          this.currentPage = 1;
+            this.arePostsLoading = false;
+          } else {
+            /**
+             * Before fetching posts for new selected category, reset the page number to 1 if not already.
+             * currentPage watcher makes the API call to get the posts for particular category
+             */
+            this.currentPage = 1;
+          }
+        } catch (err) {
+          this.error = err;
         }
       },
     },

@@ -6,12 +6,16 @@
   min-height: calc(100vh - $default-footer-height);
   max-width: 100vw;
 
+  .error-container {
+    @include error;
+  }
+
   .post-page-loading-icon {
     @include loading-icon;
     height: calc(100vh - 64px);
   }
 
-  .app-banner {
+  .post-banner {
     padding-top: $default-header-height;
 
     img {
@@ -59,7 +63,7 @@
         }
       }
     }
-    
+
     .post-content {
       * {
         max-width: 100%;
