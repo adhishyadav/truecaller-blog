@@ -19,9 +19,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 90vh;
+    height: 80vh;
     width: 100%;
     padding-top: $default-header-height;
+
+    @media only screen and (max-width: 576px) {
+      height: auto;
+    }
 
     img {
       height: 100%;
