@@ -5,7 +5,7 @@
 
 $default-header-height: 64px;
 $default-footer-height: 64px;
-$min-page-height: calc(100vh - $default-footer-height);
+$min-page-height: calc(100vh - 64px);
 
 $title-default-font-size: 4rem;
 
