@@ -14,7 +14,8 @@
       <div v-if="!isPostLoading">
         <!-- Blog post's banner -->
         <div class="post-banner">
-          <img :src="currentPost.featured_image" :alt="currentPost.slug" />
+          <div v-if="!currentPost.featured_image">Post banner not found!</div>
+          <img v-else :src="currentPost.featured_image" :alt="currentPost.slug" />
         </div>
         <!-- Blog post's content -->
         <div class="container post-container py-4">

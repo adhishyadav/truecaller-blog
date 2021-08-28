@@ -16,10 +16,15 @@
   }
 
   .post-banner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+    width: 100%;
     padding-top: $default-header-height;
 
     img {
-      height: 90vh;
+      height: 100%;
       width: 100%;
       object-fit: cover;
       object-position: 0 0;
