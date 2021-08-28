@@ -48,14 +48,14 @@
       @include title;
     }
 
-    .post-category-selector {
-      width: 300px;
-      box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
-      border: none;
-      @media only screen and (max-width: 576px) {
-        width: 100%;
+      .post-category-selector {
+        width: 300px;
+        box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+        border: none;
+        @media only screen and (max-width: 576px) {
+          width: 100%;
+        }
       }
-    }
 
     .home-page-loading-icon {
       @include loading-icon;
@@ -113,16 +113,23 @@
       }
     }
 
-    .post-pagination {
+    .post-pagination-container {
       display: flex;
       justify-content: center;
 
       .pagination {
         .page-item {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 40px;
+          width: 40px;
           background-color: none;
 
           .page-link {
             border-radius: 20px;
+            color: #000000;
+            font-weight: bold;
             margin: 0 20px;
             background: none;
             border: none;
@@ -136,6 +143,10 @@
           background-color: $pagination-active-page-indicator-color;
           border: $pagination-active-page-indicator-color;
           border-radius: 30px;
+
+          .page-link {
+            color: #ffffff;
+          }
         }
       }
     }

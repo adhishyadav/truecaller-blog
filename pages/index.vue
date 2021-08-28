@@ -68,16 +68,15 @@
         </div>
 
         <!-- Pagination component to navigate across more pages of blog posts' list -->
-        <div class="post-pagination">
-          <div class="mt-3">
-            <b-pagination
-              v-model="currentPage"
-              :total-rows="totalNumberOfPosts"
-              :per-page="postsPerPage"
-              first-number
-              last-number
-            ></b-pagination>
-          </div>
+        <div class="post-pagination-container">
+          <b-pagination
+            class="post-pagination mt-3"
+            v-model="currentPage"
+            :total-rows="totalNumberOfPosts"
+            :per-page="postsPerPage"
+            first-number
+            last-number
+          />
         </div>
       </div>
     </div>
@@ -100,7 +99,7 @@ export default {
     return {
       totalPages: 300,
       postsPerPage: 20,
-      currentPage: 1,
+      currentPage: null,
       currentCategory: "all-categories",
       arePostsLoading: true,
       error: null,
@@ -116,12 +115,14 @@ export default {
   },
   async beforeMount() {
     try {
+      this.currentPage = this.currentPageNumber;
+
       /** Fetch all the available categories of blog posts to populate categories dropdown options */
       await this.getCategories();
 
       /** Fetch posts for page 1 on first load of the webpage before mounting the UI */
       await this.getPosts({
-        pageNumber: 1,
+        pageNumber: this.currentPageNumber,
       });
 
       /** Toggle loading flag off after completion of API call(s) */
@@ -139,6 +140,7 @@ export default {
     ...mapActions("posts", {
       getPosts: "GET_POSTS",
       getCategories: "GET_CATEGORIES",
+      changePageNumber: "CHANGE_PAGE_NUMBER",
     }),
 
     /** Util function to display relevant category on blog post card based on current category selected */
@@ -232,6 +234,7 @@ export default {
       "totalNumberOfPosts",
       "postsToShow",
       "postCategories",
+      "currentPageNumber",
     ]),
   },
   watch: {
@@ -242,6 +245,8 @@ export default {
       async handler(pageNumber) {
         try {
           let category = null;
+
+          this.changePageNumber(pageNumber);
 
           /**
            * Safety null check of currentCategory
@@ -257,7 +262,7 @@ export default {
           this.arePostsLoading = true;
 
           await this.getPosts({
-            pageNumber,
+            pageNumber: this.currentPageNumber,
             category,
           });
 
@@ -281,7 +286,7 @@ export default {
             this.arePostsLoading = true;
 
             await this.getPosts({
-              pageNumber: 1,
+              pageNumber: this.currentPageNumber,
               category,
             });
 

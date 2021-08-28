@@ -4,12 +4,14 @@
   * postsToShow: Array of blog posts to show on current page ["/"]
   * postCategories: All the available blog posts' categories ["/"]
   * currentPost: Current selected blog post ["/post/_slug"]
+  * currentPageNumber: Current page number selected on landing page, default value is 1 ["/"]
   */
 export const state = () => ({
   totalNumberOfPosts: 0,
   postsToShow: [],
   postCategories: [],
   currentPost: {},
+  currentPageNumber: 1,
 });
 
 /**
@@ -19,6 +21,7 @@ export const state = () => ({
  * SET_POSTS: updates/mutates "postsToShow" in state
  * SET_TOTAL_NUMBER_OF_POSTS: updates/mutates "totalNumberOfPosts" in state
  * SET_POST: updates/mutates "currentPost" in state
+ * SET_PAGE_NUMBER: Updates/mutates "currentPageNumber" in state
  */
 export const mutations = {
   SET_CATEGORIES(state, categories) {
@@ -33,6 +36,9 @@ export const mutations = {
   SET_POST(state, post) {
     state.currentPost = post;
   },
+  SET_PAGE_NUMBER(state, pageNumber) {
+    state.currentPageNumber = pageNumber;
+  }
 };
 
 /**
@@ -42,6 +48,7 @@ export const mutations = {
  * GET_POSTS: Fetches blog posts from API and calls SET_CATEGORIES mutation
  * GET_POST_BY_SLUG: Fetches a blog post from API using blog post slug and calls SET_CATEGORIES mutation
  * RESET_POST_TO_DEFAULT: Resets "currentPost" to initial state by calling SET_POST mutation
+ * CHANGE_PAGE_NUMBER: Changes the page number of the landinng page cards view
  */
 export const actions = {
   async GET_CATEGORIES({ commit }) {
@@ -70,5 +77,8 @@ export const actions = {
   },
   RESET_POST_TO_DEFAULT({ commit }) {
     commit("SET_POST", {});
+  },
+  CHANGE_PAGE_NUMBER({ commit }, pageNumber) {
+    commit("SET_PAGE_NUMBER", pageNumber);
   }
 }
