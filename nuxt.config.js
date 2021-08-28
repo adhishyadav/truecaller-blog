@@ -1,7 +1,7 @@
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'Adhish_Yadav',
+    title: 'Truecaller Blog',
     htmlAttrs: {
       lang: 'en'
     },
